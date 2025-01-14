@@ -13,6 +13,17 @@ const gameLogs = [];  // Array to store game logs
 // Middleware to parse JSON request bodies
 app.use(bodyParser.json());
 
+// Middleware to verify requests are coming from Roblox
+app.use((req, res, next) => {
+    const robloxHeader = req.headers['user-agent'] || ''; // Check the User-Agent header
+
+    if (!robloxHeader.includes('Roblox')) {
+        return res.status(403).json({ error: 'Request not authorized: Not from Roblox' });
+    }
+
+    next(); // Proceed if verification is successful
+});
+
 // Endpoint to get the script for a specific username
 app.get('/api/executes/:username', (req, res) => {
     const username = req.params.username;
