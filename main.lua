@@ -1,25 +1,22 @@
--- SoriaDora: TuerSS 2Way Execute Script
--- This script checks for new scripts to execute every 2 seconds.
--- It retrieves a script from the API endpoint based on the Roblox player's username,
+-- SoriaDora: TuerSS 2Way Execute Script with Game Logging
+-- This script checks for new scripts to execute every 2 seconds,
+-- retrieves a script from the API endpoint based on the Roblox player's username,
 -- executes it, and sends feedback to the server whether it was successful or not.
+-- Additionally, it logs game information to the server every 2 seconds.
 
 -- Function to send POST feedback to the server
 function sendFeedback(username, status)
-    local httpService = game:GetService("HttpService") -- Roblox's HTTP service for making web requests
+    local httpService = game:GetService("HttpService")
     local feedbackUrl = "https://tuerss.com/api/executes/" .. username .. "/feedback"
     local data = {
         message = status -- Either "executed successfully" or "failed to execute"
     }
     
-    -- Convert data table to JSON format
     local jsonData = httpService:JSONEncode(data)
-    
-    -- Send a POST request with the feedback data
     local success, response = pcall(function()
         return httpService:PostAsync(feedbackUrl, jsonData, Enum.HttpContentType.ApplicationJson)
     end)
     
-    -- Print the result for debugging purposes
     if success then
         print("Feedback sent: " .. status)
     else
@@ -32,18 +29,15 @@ function checkAndExecute(username)
     local httpService = game:GetService("HttpService")
     local executeUrl = "https://tuerss.com/api/executes/" .. username
     
-    -- Fetch the script from the API
     local success, scriptContent = pcall(function()
         return httpService:GetAsync(executeUrl)
     end)
     
     if success and scriptContent and scriptContent ~= "-- nothing here" then
-        -- Try to execute the script using Roblox's loadstring function
         local executeSuccess, errorMessage = pcall(function()
-            loadstring(scriptContent)() -- Executes the fetched Lua script
+            loadstring(scriptContent)()
         end)
         
-        -- Send feedback based on whether the execution was successful
         if executeSuccess then
             sendFeedback(username, "executed successfully")
         else
@@ -54,9 +48,37 @@ function checkAndExecute(username)
     end
 end
 
--- Main loop to check for new scripts every 2 seconds
-local username = game.Players.LocalPlayer.Name -- Get the Roblox player's username
+-- Function to log game information to the server
+function logGameInfo()
+    local httpService = game:GetService("HttpService")
+    local gameLogUrl = "https://tuerss.com/api/gamelog"
+    
+    -- Collecting game information
+    local gameInfo = {
+        gameId = tostring(game.GameId), -- The unique ID of the game
+        gameName = game.Name, -- The name of the game
+        description = game.Description, -- The description of the game
+        creator = game.Creator.Name, -- The name of the game's creator
+        playerCount = #game.Players:GetPlayers(), -- Current number of players in the game
+        maxPlayers = game.Players.MaxPlayers -- Maximum number of players allowed
+    }
+    
+    local jsonData = httpService:JSONEncode(gameInfo)
+    local success, response = pcall(function()
+        return httpService:PostAsync(gameLogUrl, jsonData, Enum.HttpContentType.ApplicationJson)
+    end)
+    
+    if success then
+        print("Game log sent successfully")
+    else
+        print("Failed to send game log: " .. response)
+    end
+end
+
+-- Main loop to check for new scripts and log game info every 2 seconds
+local username = game.Players.LocalPlayer.Name
 while true do
     checkAndExecute(username) -- Check and execute script for the player
-    wait(2) -- Wait for 2 seconds before checking again
+    logGameInfo() -- Log game information to the server
+    wait(2) -- Wait for 2 seconds before the next check
 end
