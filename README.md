@@ -202,7 +202,7 @@ The server will run on `http://localhost:3000`.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](https://raw.githubusercontent.com/hacker123as/SoriaDora/refs/heads/main/LICENSE?token=GHSAT0AAAAAAC44FWKSIZR3JDDD2M5XW33SZ4GXZTQ) file for details.
+This project is licensed under the MIT License. See the [LICENSE](https://raw.githubusercontent.com/hacker123as/SoriaDora/refs/heads/main/LICENSE) file for details.
 
 ---
 
